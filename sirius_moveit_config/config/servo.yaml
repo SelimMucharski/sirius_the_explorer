@@ -1,0 +1,46 @@
+# MoveIt Servo for the 6-DOF arm (parameter namespace "moveit_servo").
+# Twist commands: /servo_node/delta_twist_cmds (geometry_msgs/TwistStamped),
+# joint jog:      /servo_node/delta_joint_cmds (control_msgs/JointJog).
+# Select the input type with the /servo_node/switch_command_type service
+# (moveit_msgs/srv/ServoCommandType: 0 = JOINT_JOG, 1 = TWIST, 2 = POSE).
+move_group_name: arm
+
+publish_period: 0.01             # [s]
+max_expected_latency: 0.1        # [s]
+incoming_command_timeout: 0.2    # [s] stop if no command arrives (joy publishes at 20 Hz)
+
+command_in_type: unitless        # gamepad-style commands in [-1, 1], scaled below
+scale:
+  linear: 0.1                    # [m/s]
+  rotational: 0.4                # [rad/s]
+  joint: 0.4                     # [rad/s]
+
+# Output straight to the JointTrajectoryController topic interface
+command_out_type: trajectory_msgs/JointTrajectory
+command_out_topic: /manip_controller/joint_trajectory
+publish_joint_positions: true
+publish_joint_velocities: true
+publish_joint_accelerations: false
+
+use_smoothing: true
+smoothing_filter_plugin_name: online_signal_smoothing::ButterworthFilterPlugin
+
+# move_group owns the primary planning scene
+is_primary_planning_scene_monitor: false
+check_octomap_collisions: false
+check_collisions: true
+collision_check_rate: 10.0
+self_collision_proximity_threshold: 0.005  # collision geometry is conservative boxes
+scene_collision_proximity_threshold: 0.02
+
+# Jacobian condition number of this arm is ~14 in the "work" pose (Panda-tuned
+# defaults 17 / 30 stop it almost immediately).
+lower_singularity_threshold: 30.0
+hard_stop_singularity_threshold: 60.0
+leaving_singularity_threshold_multiplier: 2.0
+joint_limit_margins: [0.1]
+
+joint_topic: /joint_states
+status_topic: ~/status
+cartesian_command_in_topic: ~/delta_twist_cmds
+joint_command_in_topic: ~/delta_joint_cmds

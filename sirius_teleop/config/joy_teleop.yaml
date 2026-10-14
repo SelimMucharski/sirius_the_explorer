@@ -1,0 +1,32 @@
+# Gamepad teleoperation. Button/axis indices follow the joy package (SDL game
+# controller mapping, e.g. Xbox / PlayStation pads); check yours with
+# `ros2 topic echo /joy` and adjust the layout below if needed.
+joy_node:
+  ros__parameters:
+    deadzone: 0.05
+    autorepeat_rate: 20.0   # keeps MoveIt Servo fed while a stick is held still
+
+joy_teleop:
+  ros__parameters:
+    max_linear: 0.5          # [m/s]
+    max_angular: 1.0         # [rad/s]
+    deadzone: 0.05
+    base_frame: base_link
+    arm_frame: root_link     # arm twists are expressed in the arm base frame
+    gripper_joints: [joint_gripper_left, joint_gripper_right]
+    gripper_motion_time: 0.5  # [s]
+    gripper_open_position: 0.0326
+    gripper_closed_position: 0.0
+    layout:
+      axis_left_x: 0
+      axis_left_y: 1
+      axis_right_x: 2
+      axis_right_y: 3
+      button_gripper_open: 0    # A
+      button_gripper_close: 1   # B
+      button_drive: 9           # LB (hold to drive)
+      button_arm: 10            # RB (hold to jog the arm)
+      button_up: 11
+      button_down: 12
+      button_left: 13
+      button_right: 14

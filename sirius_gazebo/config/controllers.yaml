@@ -1,0 +1,91 @@
+# ros2_control configuration for the Gazebo simulation (gz_ros2_control).
+# Loaded by the GazeboSimROS2ControlPlugin declared in sirius.urdf.xacro
+# (xacro arg gazebo_controllers).
+#  * /cmd_vel (TwistStamped) -> sirius_base_controller -> /odometry/wheels
+#    (remapped by the spawner in sirius_gazebo.launch.py),
+#  * odometry TF is published by robot_localization (EKF), not by the controller.
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    sirius_base_controller:
+      type: diff_drive_controller/DiffDriveController
+
+    manip_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+sirius_base_controller:
+  ros__parameters:
+    left_wheel_names:  ["front_left_wheel_joint", "back_left_wheel_joint"]
+    right_wheel_names: ["front_right_wheel_joint", "back_right_wheel_joint"]
+
+    wheel_separation: 0.577
+    wheel_radius:     0.110
+    wheel_separation_multiplier: 1.75  # skid-steer slip: wheel-odom yaw / ground-truth yaw measured in Gazebo
+    left_wheel_radius_multiplier: 1.0
+    right_wheel_radius_multiplier: 1.0
+
+    publish_rate: 50.0
+    odom_frame_id:  odom
+    base_frame_id:  base_link
+    pose_covariance_diagonal:  [0.001, 0.001, 0.001, 0.001, 0.001, 0.01]
+    twist_covariance_diagonal: [0.01, 0.01, 0.05, 0.01, 0.01, 0.02]
+
+    cmd_vel_timeout: 1.0
+    enable_odom_tf: false
+    position_feedback: true
+
+    linear.x.has_velocity_limits: true
+    linear.x.max_velocity: 1.0
+    linear.x.min_velocity: -1.0
+    linear.x.has_acceleration_limits: true
+    linear.x.max_acceleration: 1.25
+    linear.x.min_acceleration: -1.25
+
+    angular.z.has_velocity_limits: true
+    angular.z.max_velocity: 1.0
+    angular.z.min_velocity: -1.0
+    angular.z.has_acceleration_limits: true
+    angular.z.max_acceleration: 3.14
+    angular.z.min_acceleration: -3.14
+
+# 6-DOF arm (spawned only with manipulator:=6DOF)
+manip_controller:
+  ros__parameters:
+    joints: [joint_1, joint_2, joint_3, joint_4, joint_5, joint_6]
+    command_interfaces: [position]
+    state_interfaces: [position, velocity]
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false
+    open_loop_control: false
+    # MoveIt Servo streams short trajectories that end in motion
+    allow_nonzero_velocity_at_trajectory_end: true
+    constraints:
+      stopped_velocity_tolerance: 0.05
+      goal_time: 0.0
+      joint_1: {trajectory: 0.2, goal: 0.05}
+      joint_2: {trajectory: 0.2, goal: 0.05}
+      joint_3: {trajectory: 0.2, goal: 0.05}
+      joint_4: {trajectory: 0.2, goal: 0.05}
+      joint_5: {trajectory: 0.2, goal: 0.05}
+      joint_6: {trajectory: 0.2, goal: 0.05}
+
+# Gripper: both jaws together (FollowJointTrajectory action or
+# /gripper_controller/joint_trajectory topic). Position = opening of one jaw:
+# 0.0 = closed, 0.0326 = fully open (65.2 mm). Goal tolerances are left at 0
+# (= not checked) so closing on an object does not abort the goal.
+gripper_controller:
+  ros__parameters:
+    joints: [joint_gripper_left, joint_gripper_right]
+    command_interfaces: [position]
+    state_interfaces: [position, velocity]
+    state_publish_rate: 50.0
+    action_monitor_rate: 20.0
+    allow_partial_joints_goal: false

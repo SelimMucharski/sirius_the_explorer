@@ -2,7 +2,7 @@
 <!-- Based on Sparkfun Multi-Band antenna. Mesh generated from step provided by Sparkfun
      https://www.sparkfun.com/products/21801 -->
 <robot xmlns:xacro="http://wiki.ros.org/xacro">
-<xacro:macro name="gnss" params="prefix:='' material collisions:=${xacro.load_yaml('$(find sirius_description)/urdf/sirius/collisions.yaml')} datum:=^ elevation:=^ horizontal_cep:=1.0 vertical_cep:=1.5 rate:=20.0 gazebo_origin:=^">
+<xacro:macro name="gnss" params="prefix:='' material collisions:=${xacro.load_yaml('$(find sirius_description)/urdf/sirius/collisions.yaml')} datum:=^ elevation:=^ horizontal_cep:=1.0 vertical_cep:=1.5 rate:=20.0">
   <xacro:property name="_prefix" value="${prefix + '_' if prefix else ''}"/>
   <!-- sqrt(-1/(2*ln(0.5))) = 0.8493218002880191 -->
   <!-- This is the ratio needed to convert CEP to std dev of single axis -->
@@ -30,7 +30,7 @@
     <sensor name="${prefix}_gnss_sensor" type="navsat">
       <always_on>1</always_on>
       <update_rate>20</update_rate>
-      <topic>/${prefix}/gps/fix</topic>
+      <topic>/${_prefix}gps/fix</topic>
       <gz_frame_id>${prefix}gnss</gz_frame_id>
       <navsat>
         <position_sensing>

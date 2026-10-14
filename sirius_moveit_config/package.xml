@@ -3,7 +3,7 @@
 <package format="3">
   <name>sirius_moveit_config</name>
   <version>0.0.0</version>
-  <description>MoveIt2 configuration for the Sirius rover manipulator (5-DOF and 6-DOF)</description>
+  <description>MoveIt2 configuration for the Sirius rover 6-DOF manipulator</description>
   <maintainer email="todo@todo.todo">TODO</maintainer>
   <license>MIT</license>
 
@@ -16,7 +16,11 @@
   <exec_depend>moveit_simple_controller_manager</exec_depend>
   <exec_depend>moveit_ros_visualization</exec_depend>
   <exec_depend>sirius_description</exec_depend>
-  <exec_depend>sirius_control</exec_depend>
+  <exec_depend>moveit_servo</exec_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>moveit_msgs</exec_depend>
+  <exec_depend>shape_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

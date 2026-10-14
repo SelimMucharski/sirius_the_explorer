@@ -18,28 +18,12 @@ def generate_launch_description():
         'manipulator',
         default_value='6DOF',
         description='Manipulator version',
-        choices=['none', '5DOF', '6DOF']
-    )
-
-    use_real_hardware_arg = DeclareLaunchArgument(
-        'use_real_hardware',
-        default_value='false',
-        description='Use real hardware interfaces (sirius_hw_interfaces)',
-        choices=['true', 'false']
-    )
-
-    unity_sim_arg = DeclareLaunchArgument(
-        'unity_sim',
-        default_value='false',
-        description='Unity simulation (topic_based_ros2_control) instead of Gazebo',
-        choices=['true', 'false']
+        choices=['none', '6DOF']
     )
 
     robot_description = ParameterValue(
         Command(['xacro ', xacro_path,
                  ' manipulator:=', LaunchConfiguration('manipulator'),
-                 ' use_real_hardware:=', LaunchConfiguration('use_real_hardware'),
-                 ' unity_sim:=', LaunchConfiguration('unity_sim'),
                  ]),
         value_type=str
     )
@@ -53,7 +37,5 @@ def generate_launch_description():
 
     return LaunchDescription([
         manipulator_version_arg,
-        use_real_hardware_arg,
-        unity_sim_arg,
         robot_state_publisher_node
     ])

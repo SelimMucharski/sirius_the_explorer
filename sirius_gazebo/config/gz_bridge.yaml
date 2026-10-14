@@ -1,0 +1,69 @@
+# ros_gz_bridge topics for the Sirius simulation.
+# ROS names follow the real robot (/imu/data, /gps/fix,
+# /front/depth/* consumed by sirius_navigation obstacle_cloud.py).
+- ros_topic_name: /clock
+  gz_topic_name: /clock
+  ros_type_name: rosgraph_msgs/msg/Clock
+  gz_type_name: gz.msgs.Clock
+  direction: GZ_TO_ROS
+
+# Ground-truth pose (OdometryPublisher in sirius.urdf.xacro), for evaluation only
+- ros_topic_name: /ground_truth
+  gz_topic_name: /ground_truth
+  ros_type_name: nav_msgs/msg/Odometry
+  gz_type_name: gz.msgs.Odometry
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /imu/data
+  gz_topic_name: /front/imu/data
+  ros_type_name: sensor_msgs/msg/Imu
+  gz_type_name: gz.msgs.IMU
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /gps/fix
+  gz_topic_name: /gps/fix
+  ros_type_name: sensor_msgs/msg/NavSatFix
+  gz_type_name: gz.msgs.NavSat
+  direction: GZ_TO_ROS
+
+# Front OAK-D-W RGB-D
+- ros_topic_name: /front/color/image_raw
+  gz_topic_name: /front/camera/image
+  ros_type_name: sensor_msgs/msg/Image
+  gz_type_name: gz.msgs.Image
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: /front/depth/image_raw
+  gz_topic_name: /front/camera/depth_image
+  ros_type_name: sensor_msgs/msg/Image
+  gz_type_name: gz.msgs.Image
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /front/depth/camera_info
+  gz_topic_name: /front/camera/camera_info
+  ros_type_name: sensor_msgs/msg/CameraInfo
+  gz_type_name: gz.msgs.CameraInfo
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /front/points
+  gz_topic_name: /front/camera/points
+  ros_type_name: sensor_msgs/msg/PointCloud2
+  gz_type_name: gz.msgs.PointCloudPacked
+  direction: GZ_TO_ROS
+  lazy: true
+
+# Front OAK-D-W mono stereo pair
+- ros_topic_name: /front/left/image_raw
+  gz_topic_name: /front/left/image_raw
+  ros_type_name: sensor_msgs/msg/Image
+  gz_type_name: gz.msgs.Image
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: /front/right/image_raw
+  gz_topic_name: /front/right/image_raw
+  ros_type_name: sensor_msgs/msg/Image
+  gz_type_name: gz.msgs.Image
+  direction: GZ_TO_ROS
+  lazy: true

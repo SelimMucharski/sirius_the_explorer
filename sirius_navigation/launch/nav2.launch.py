@@ -18,11 +18,13 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument('nav2_params_file', default_value=share + '/config/nav2_params.yaml'),
         DeclareLaunchArgument('obstacle_camera', default_value='front', description='Depth camera namespace'),
+        DeclareLaunchArgument('use_sim_time', default_value='false', description='Use the simulation clock'),
         Node(package='sirius_navigation', executable='obstacle_cloud.py', name='obstacle_cloud',
-             namespace=LaunchConfiguration('obstacle_camera'), output='screen'),
+             namespace=LaunchConfiguration('obstacle_camera'), output='screen',
+             parameters=[{'use_sim_time': LaunchConfiguration('use_sim_time')}]),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(nav2_launch),
             launch_arguments={'params_file': LaunchConfiguration('nav2_params_file'),
-                              'use_sim_time': 'false',
+                              'use_sim_time': LaunchConfiguration('use_sim_time'),
                               'autostart': 'true'}.items()),
     ])

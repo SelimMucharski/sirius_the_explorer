@@ -104,6 +104,9 @@ def main(args=None):
         rclpy.spin(node)
     except (KeyboardInterrupt, ExternalShutdownException):
         pass
+    except Exception:
+        if rclpy.ok():
+            raise  # a real error; otherwise spin was interrupted by shutdown (SIGINT race)
     finally:
         node.destroy_node()
         rclpy.try_shutdown()

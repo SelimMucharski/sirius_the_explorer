@@ -16,6 +16,14 @@
     <chain base_link="root_link" tip_link="tcp_connector"/>
   </group>
 
+  <!-- Parallel gripper; both jaws are commanded together -->
+  <group name="gripper">
+    <link name="gripper_left"/>
+    <link name="gripper_right"/>
+    <joint name="joint_gripper_left"/>
+    <joint name="joint_gripper_right"/>
+  </group>
+
   <!-- Wrist sub-group (last 3 joints) -->
   <group name="wrist">
     <chain base_link="link_3" tip_link="tcp_connector"/>
@@ -56,20 +64,33 @@
   </group_state>
 
 
+  <!-- Arm reaching forward, away from singularities (Jacobian condition number ~14);
+       start here before jogging with MoveIt Servo. home/upright/ready have
+       joint_5 = 0, i.e. a wrist singularity where Servo stops immediately. -->
+  <group_state name="work" group="arm">
+    <joint name="joint_1" value="0"/>
+    <joint name="joint_2" value="0.5"/>
+    <joint name="joint_3" value="1.0"/>
+    <joint name="joint_4" value="0"/>
+    <joint name="joint_5" value="0.8"/>
+    <joint name="joint_6" value="0"/>
+  </group_state>
+
   <!-- ================================================================
        End-effector
        ================================================================ -->
 
-  <end_effector name="gripper_eef" parent_link="link_5" group="arm"/>
+  <group_state name="open" group="gripper">
+    <joint name="joint_gripper_left" value="0.0326"/>
+    <joint name="joint_gripper_right" value="0.0326"/>
+  </group_state>
 
+  <group_state name="closed" group="gripper">
+    <joint name="joint_gripper_left" value="0"/>
+    <joint name="joint_gripper_right" value="0"/>
+  </group_state>
 
-  <!-- ================================================================
-       Virtual joint
-       ================================================================ -->
-
-  <virtual_joint name="arm_to_rover" type="fixed"
-                 parent_frame="platform"
-                 child_link="root_link"/>
+  <end_effector name="gripper_eef" parent_link="tcp_connector" group="gripper" parent_group="arm"/>
 
 
   <!-- ================================================================
@@ -95,7 +116,265 @@
   <disable_collisions link1="tcp_connector" link2="gripper_left"  reason="Adjacent"/>
   <disable_collisions link1="tcp_connector" link2="gripper_right" reason="Adjacent"/>
   <disable_collisions link1="tcp_connector" link2="wrist_camera"  reason="Adjacent"/>
+  <!-- Jaws touch each other when the gripper is closed -->
+  <disable_collisions link1="gripper_left"  link2="gripper_right" reason="Default"/>
 
+  <!-- Rover body: rigid (wheels/rims are axisymmetric), so distances between its links never
+       change; checking them only makes MoveIt Servo decelerate permanently. -->
+  <disable_collisions link1="back_left_inner_rim" link2="back_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="back_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="back_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="back_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="back_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="back_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="back_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="front_camera" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="gnss" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="back_left_inner_rim" link2="platform" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="back_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="back_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="back_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="back_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="back_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="back_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="front_camera" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="gnss" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="back_left_outer_rim" link2="platform" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="back_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="back_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="back_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="back_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="back_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="front_camera" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="gnss" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="back_left_suspension" link2="platform" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="back_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="back_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="back_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="back_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="front_camera" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="gnss" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="back_left_wheel" link2="platform" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="back_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="back_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="back_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="front_camera" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="gnss" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="back_right_inner_rim" link2="platform" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="back_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="back_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="front_camera" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="gnss" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="back_right_outer_rim" link2="platform" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="back_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="front_camera" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="gnss" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="back_right_suspension" link2="platform" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="front_camera" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="gnss" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="back_right_wheel" link2="platform" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="gnss" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="front_camera" link2="platform" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="gnss" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="front_left_inner_rim" link2="platform" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="gnss" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="front_left_outer_rim" link2="platform" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="gnss" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="front_left_suspension" link2="platform" reason="Never"/>
+  <disable_collisions link1="front_left_wheel" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="front_left_wheel" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="front_left_wheel" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="front_left_wheel" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="front_left_wheel" link2="gnss" reason="Never"/>
+  <disable_collisions link1="front_left_wheel" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="front_left_wheel" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="front_left_wheel" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="front_left_wheel" link2="platform" reason="Never"/>
+  <disable_collisions link1="front_right_inner_rim" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="front_right_inner_rim" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="front_right_inner_rim" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="front_right_inner_rim" link2="gnss" reason="Never"/>
+  <disable_collisions link1="front_right_inner_rim" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="front_right_inner_rim" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="front_right_inner_rim" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="front_right_inner_rim" link2="platform" reason="Never"/>
+  <disable_collisions link1="front_right_outer_rim" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="front_right_outer_rim" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="front_right_outer_rim" link2="gnss" reason="Never"/>
+  <disable_collisions link1="front_right_outer_rim" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="front_right_outer_rim" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="front_right_outer_rim" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="front_right_outer_rim" link2="platform" reason="Never"/>
+  <disable_collisions link1="front_right_suspension" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="front_right_suspension" link2="gnss" reason="Never"/>
+  <disable_collisions link1="front_right_suspension" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="front_right_suspension" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="front_right_suspension" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="front_right_suspension" link2="platform" reason="Never"/>
+  <disable_collisions link1="front_right_wheel" link2="gnss" reason="Never"/>
+  <disable_collisions link1="front_right_wheel" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="front_right_wheel" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="front_right_wheel" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="front_right_wheel" link2="platform" reason="Never"/>
+  <disable_collisions link1="gnss" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="gnss" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="gnss" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="gnss" link2="platform" reason="Never"/>
+  <disable_collisions link1="indicator_light" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="indicator_light" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="indicator_light" link2="platform" reason="Never"/>
+  <disable_collisions link1="mast_back_camera" link2="mast_front_camera" reason="Never"/>
+  <disable_collisions link1="mast_back_camera" link2="platform" reason="Never"/>
+  <disable_collisions link1="mast_front_camera" link2="platform" reason="Never"/>
+
+  <!-- Arm base (root_link) is bolted to the rover body: fixed distances -->
+  <disable_collisions link1="root_link" link2="back_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="root_link" link2="back_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="root_link" link2="back_left_suspension" reason="Never"/>
+  <disable_collisions link1="root_link" link2="back_left_wheel" reason="Never"/>
+  <disable_collisions link1="root_link" link2="back_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="root_link" link2="back_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="root_link" link2="back_right_suspension" reason="Never"/>
+  <disable_collisions link1="root_link" link2="back_right_wheel" reason="Never"/>
+  <disable_collisions link1="root_link" link2="front_camera" reason="Never"/>
+  <disable_collisions link1="root_link" link2="front_left_inner_rim" reason="Never"/>
+  <disable_collisions link1="root_link" link2="front_left_outer_rim" reason="Never"/>
+  <disable_collisions link1="root_link" link2="front_left_suspension" reason="Never"/>
+  <disable_collisions link1="root_link" link2="front_left_wheel" reason="Never"/>
+  <disable_collisions link1="root_link" link2="front_right_inner_rim" reason="Never"/>
+  <disable_collisions link1="root_link" link2="front_right_outer_rim" reason="Never"/>
+  <disable_collisions link1="root_link" link2="front_right_suspension" reason="Never"/>
+  <disable_collisions link1="root_link" link2="front_right_wheel" reason="Never"/>
+  <disable_collisions link1="root_link" link2="gnss" reason="Never"/>
+  <disable_collisions link1="root_link" link2="indicator_light" reason="Never"/>
+  <disable_collisions link1="root_link" link2="mast_back_camera" reason="Never"/>
+  <disable_collisions link1="root_link" link2="mast_front_camera" reason="Never"/>
   <disable_collisions link1="root_link"  link2="platform" reason="Never"/>
   <disable_collisions link1="link_1"     link2="platform" reason="Never"/>
   <disable_collisions link1="link_1"     link2="root_link" reason="Never"/>

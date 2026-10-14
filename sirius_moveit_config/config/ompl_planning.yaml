@@ -67,3 +67,8 @@ planner_configs:
   LazyPRM:
     type: geometric::LazyPRM
     range: 0.0
+
+gripper:
+  planner_configs:
+    - RRTConnect
+  default_planner_config: RRTConnect
