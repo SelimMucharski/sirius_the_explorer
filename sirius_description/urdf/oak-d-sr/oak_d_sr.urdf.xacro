@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+<xacro:macro name="oak-d-sr" params="prefix:=oak-d-sr"> 
+
+  <link name="${prefix}_camera">
+    <visual>
+      <material name="oak-d-w-material">
+        <color rgba="0.35 0.35 0.35 1"/>
+      </material>
+      <geometry>
+        <mesh filename="package://sirius_description/meshes/cameras/OAK-D-SR.stl"/>
+      </geometry>
+      <origin xyz="0 -0.022 -0.015" rpy="${pi/2} 0 ${pi/2}" />
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.0253 0.056 0.036"/>
+      </geometry>
+      <origin xyz="-0.0038 0.0005 0.0004" rpy="0 0 0" />
+    </collision>
+  </link>
+
+  <link name="${prefix}_left_camera_optical"/>
+  <link name="${prefix}_left_camera"/>
+  <link name="${prefix}_right_camera_optical"/>
+  <link name="${prefix}_right_camera"/>
+
+  <joint name="${prefix}_left_camera_joint" type="fixed">
+    <parent link="${prefix}_camera" />
+    <child link="${prefix}_left_camera" />
+    <origin xyz="0 0.01 0" rpy="0 0 0" />
+  </joint>
+
+  <joint name="${prefix}_left_camera_optical_joint" type="fixed">
+    <parent link="${prefix}_left_camera" />
+    <child link="${prefix}_left_camera_optical" />
+    <origin xyz="0 0 0" rpy="-1.5707963267948966 0.0 -1.5707963267948966" />
+  </joint>
+
+  <joint name="${prefix}_right_camera_joint" type="fixed">
+    <parent link="${prefix}_camera" />
+    <child link="${prefix}_right_camera" />
+    <origin xyz="0 -0.01 0" rpy="0 0 0" />
+  </joint>
+
+  <joint name="${prefix}_right_camera_optical_joint" type="fixed">
+    <parent link="${prefix}_right_camera" />
+    <child link="${prefix}_right_camera_optical" />
+    <origin xyz="0 0 0" rpy="-1.5707963267948966 0.0 -1.5707963267948966" />
+  </joint>
+  
+</xacro:macro>
+</robot>
