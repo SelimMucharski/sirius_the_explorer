@@ -12,9 +12,9 @@ from visualization_msgs.msg import Marker, MarkerArray
 from ament_index_python.packages import get_package_share_directory
 
 from probe_supervisor_interfaces.srv import SpawnRandomProbes
-from sirius_the_explorer.probe_supervisor.probe_supervisor.domain.spawn_area import RectangleArea
-from sirius_the_explorer.probe_supervisor.probe_supervisor.domain.orientation import sample_orientation
-from sirius_the_explorer.probe_supervisor.probe_supervisor.domain.placement import (
+from probe_supervisor.domain.spawn_area import RectangleArea
+from probe_supervisor.domain.orientation import sample_orientation
+from probe_supervisor.domain.placement import (
     KeepOutCircle, PlacementConstraints, sample_positions)
 
 

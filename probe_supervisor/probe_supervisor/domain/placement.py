@@ -5,7 +5,7 @@ import random
 from dataclasses import dataclass, field
 from typing import List, Sequence, Tuple
 
-from sirius_the_explorer.probe_supervisor.probe_supervisor.domain.spawn_area import SpawnArea
+from probe_supervisor.domain.spawn_area import SpawnArea
 
 Point = Tuple[float, float]
 

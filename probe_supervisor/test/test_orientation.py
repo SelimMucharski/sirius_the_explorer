@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-from sirius_the_explorer.probe_supervisor.probe_supervisor.domain.orientation import Orientation, sample_orientation
+from probe_supervisor.domain.orientation import Orientation, sample_orientation
 
 
 def _quat_from_rpy(r, p, y):

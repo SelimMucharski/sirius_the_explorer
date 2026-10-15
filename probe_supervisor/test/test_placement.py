@@ -3,9 +3,9 @@ import random
 
 import pytest
 
-from sirius_the_explorer.probe_supervisor.probe_supervisor.domain.placement import (
+from probe_supervisor.domain.placement import (
     KeepOutCircle, PlacementConstraints, sample_positions)
-from sirius_the_explorer.probe_supervisor.probe_supervisor.domain.spawn_area import RectangleArea
+from probe_supervisor.domain.spawn_area import RectangleArea
 
 
 AREA = RectangleArea(-5.0, 5.0, -5.0, 5.0)
