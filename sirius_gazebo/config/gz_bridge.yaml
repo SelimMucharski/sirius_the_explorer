@@ -67,3 +67,9 @@
   gz_type_name: gz.msgs.Image
   direction: GZ_TO_ROS
   lazy: true
+
+- ros_topic_name: "probes_poses_gz"
+  gz_topic_name: "/world/default/pose/info"
+  ros_type_name: "geometry_msgs/msg/PoseArray"
+  gz_type_name: "gz.msgs.Pose_V"
+  direction: BIDIRECTIONAL

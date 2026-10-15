@@ -39,20 +39,24 @@ joint_limits:
     max_acceleration: 1.0
 
   joint_gripper_left:
-    # working range; the URDF allows 2 mm more on each side (see 6DOF.urdf.xacro)
+    # working range 0 (closed) .. 0.0326 (open) plus 1 mm, so that simulation noise at
+    # either end does not put the start state out of bounds; the URDF allows 2 mm more
+    # (see 6DOF.urdf.xacro)
     has_position_limits: true
-    min_position: 0.0
-    max_position: 0.0326
+    min_position: -0.001
+    max_position: 0.0336
     has_velocity_limits: true
     max_velocity: 0.1
     has_acceleration_limits: true
     max_acceleration: 0.5
 
   joint_gripper_right:
-    # working range; the URDF allows 2 mm more on each side (see 6DOF.urdf.xacro)
+    # working range 0 (closed) .. 0.0326 (open) plus 1 mm, so that simulation noise at
+    # either end does not put the start state out of bounds; the URDF allows 2 mm more
+    # (see 6DOF.urdf.xacro)
     has_position_limits: true
-    min_position: 0.0
-    max_position: 0.0326
+    min_position: -0.001
+    max_position: 0.0336
     has_velocity_limits: true
     max_velocity: 0.1
     has_acceleration_limits: true

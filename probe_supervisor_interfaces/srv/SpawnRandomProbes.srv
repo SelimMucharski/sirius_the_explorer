@@ -1,0 +1,8 @@
+# Spawn `count` probes at random positions inside the spawner's configured spawn area.
+uint32 count
+---
+# true only if all `count` probes were placed and spawned
+bool success
+string message
+# names of the probes actually spawned (may be fewer than `count`)
+string[] names

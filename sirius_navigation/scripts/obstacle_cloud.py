@@ -1,25 +1,65 @@
 #!/usr/bin/env python3
-"""ROS 2 adapter: depth image -> /front/obstacles (PointCloud2 in base_link) for Nav2 costmaps.
+"""ROS 2 adapter: depth image -> obstacle and ground clouds (PointCloud2 in base_link) for Nav2.
 
-Height filtering happens in the robot frame so that slopes of the Mars-yard terrain
-are not marked as obstacles (the costmap's own height filter works in the global frame).
+  <ns>/obstacles  points sticking out of the local ground  -> costmap marking
+  <ns>/ground     points on the ground                      -> costmap clearing
+
+Points on the robot's own arm are removed first: the collision boxes of `self_filter_links`
+are read from /robot_description and placed with TF on every frame.
+
+Classification is relative to the local ground (see sirius_navigation.obstacle_cloud), so
+slopes of the Mars-yard terrain are not marked as obstacles, while low obstacles are, at
+any distance (the costmap's own height filter works in the global frame).
 """
+
+import xml.etree.ElementTree as ET
 
 import numpy as np
 import rclpy
 from rclpy.executors import ExternalShutdownException
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import DurabilityPolicy, QoSProfile, qos_profile_sensor_data
 from rclpy.time import Time
 from sensor_msgs.msg import CameraInfo, Image, PointCloud2, PointField
+from std_msgs.msg import String
 from tf2_ros import Buffer, TransformException, TransformListener
 
 from sirius_navigation.obstacle_cloud import (
     ObstacleFilter,
+    OrientedBox,
     PinholeIntrinsics,
+    classify_points,
     depth_to_points,
-    filter_obstacles,
 )
+
+ARM_LINKS = ['link_1', 'link_2', 'link_3', 'link_4', 'link_5', 'tcp_connector',
+             'gripper_left', 'gripper_right', 'wrist_camera']
+
+
+def rpy_to_matrix(roll: float, pitch: float, yaw: float) -> np.ndarray:
+    cr, sr, cp, sp, cy, sy = (np.cos(roll), np.sin(roll), np.cos(pitch), np.sin(pitch),
+                              np.cos(yaw), np.sin(yaw))
+    return np.array([[cy * cp, cy * sp * sr - sy * cr, cy * sp * cr + sy * sr],
+                     [sy * cp, sy * sp * sr + cy * cr, sy * sp * cr - cy * sr],
+                     [-sp, cp * sr, cp * cr]])
+
+
+def collision_boxes(urdf: str, links) -> dict:
+    """{link: [(R, t, half_extents)]} for the box collision shapes of `links` (link frame)."""
+    boxes = {}
+    for link in ET.fromstring(urdf).findall('link'):
+        if link.get('name') not in links:
+            continue
+        for collision in link.findall('collision'):
+            box = collision.find('geometry/box')
+            if box is None:
+                continue
+            origin = collision.find('origin')
+            xyz = [float(v) for v in (origin.get('xyz', '0 0 0') if origin is not None else '0 0 0').split()]
+            rpy = [float(v) for v in (origin.get('rpy', '0 0 0') if origin is not None else '0 0 0').split()]
+            size = np.array([float(v) for v in box.get('size').split()])
+            boxes.setdefault(link.get('name'), []).append((rpy_to_matrix(*rpy), np.array(xyz), size / 2))
+    return boxes
 
 
 def quaternion_to_matrix(q) -> np.ndarray:
@@ -41,22 +81,48 @@ class ObstacleCloudNode(Node):
         self.declare_parameter('min_range', 0.3)
         self.declare_parameter('max_range', 8.0)
         self.declare_parameter('stride', 4)
-        self.declare_parameter('max_slope', 0.35)  # tan of the steepest drivable incline
+        self.declare_parameter('ground_cell_size', 0.15)  # [m] local ground window = 3 cells
         self.declare_parameter('depth_scale', 0.001)  # 16UC1 depth is in millimeters
+        self.declare_parameter('self_filter_links', ARM_LINKS)
+        self.declare_parameter('self_filter_padding', 0.05)  # [m]
 
         p = self.get_parameter
         self._base_frame = p('base_frame').value
         self._depth_scale = p('depth_scale').value
         self._filter = ObstacleFilter(p('min_height').value, p('max_height').value,
                                       p('min_range').value, p('max_range').value, p('stride').value,
-                                      p('max_slope').value)
+                                      p('ground_cell_size').value)
         self._intrinsics = None
+        self._self_links = list(p('self_filter_links').value)
+        self._self_padding = p('self_filter_padding').value
+        self._self_boxes = {}  # link -> boxes in the link frame, filled from robot_description
 
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self)
-        self._pub = self.create_publisher(PointCloud2, 'obstacles', 5)
+        self._obstacles_pub = self.create_publisher(PointCloud2, 'obstacles', 5)
+        self._ground_pub = self.create_publisher(PointCloud2, 'ground', 5)
+        self.create_subscription(String, '/robot_description', self._on_description,
+                                 QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         self.create_subscription(CameraInfo, 'depth/camera_info', self._on_info, qos_profile_sensor_data)
         self.create_subscription(Image, 'depth/image_raw', self._on_depth, qos_profile_sensor_data)
+
+    def _on_description(self, msg: String) -> None:
+        self._self_boxes = collision_boxes(msg.data, self._self_links)
+        self.get_logger().info(f'Self filter: {sum(map(len, self._self_boxes.values()))} boxes on '
+                               f'{sorted(self._self_boxes)}')
+
+    def _self_boxes_in_base(self):
+        boxes = []
+        for link, shapes in self._self_boxes.items():
+            try:
+                tf = self._tf_buffer.lookup_transform(self._base_frame, link, Time())
+            except TransformException:
+                continue
+            rot = quaternion_to_matrix(tf.transform.rotation)
+            t = tf.transform.translation
+            pos = np.array([t.x, t.y, t.z])
+            boxes += [OrientedBox(rot @ r, rot @ c + pos, half) for r, c, half in shapes]
+        return boxes
 
     def _on_info(self, msg: CameraInfo) -> None:
         self._intrinsics = PinholeIntrinsics(msg.k[0], msg.k[4], msg.k[2], msg.k[5])
@@ -78,12 +144,16 @@ class ObstacleCloudNode(Node):
                                    throttle_duration_sec=5.0)
             return
         t = tf.transform.translation
-        points = filter_obstacles(
+        obstacles, ground = classify_points(
             depth_to_points(depth, self._intrinsics, self._filter.stride),
-            quaternion_to_matrix(tf.transform.rotation), np.array([t.x, t.y, t.z]), self._filter)
+            quaternion_to_matrix(tf.transform.rotation), np.array([t.x, t.y, t.z]), self._filter,
+            self._self_boxes_in_base(), self._self_padding)
+        self._obstacles_pub.publish(self._to_cloud(obstacles, msg.header.stamp))
+        self._ground_pub.publish(self._to_cloud(ground, msg.header.stamp))
 
+    def _to_cloud(self, points: np.ndarray, stamp) -> PointCloud2:
         cloud = PointCloud2()
-        cloud.header.stamp = msg.header.stamp
+        cloud.header.stamp = stamp
         cloud.header.frame_id = self._base_frame
         cloud.height = 1
         cloud.width = points.shape[0]
@@ -94,7 +164,7 @@ class ObstacleCloudNode(Node):
         cloud.row_step = 12 * points.shape[0]
         cloud.is_dense = True
         cloud.data = points.tobytes()
-        self._pub.publish(cloud)
+        return cloud
 
 
 def main(args=None):

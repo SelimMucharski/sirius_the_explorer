@@ -46,6 +46,13 @@ def _spawner(controller, *extra_args, condition=None):
 def generate_launch_description():
     gazebo_pkg = get_package_share_directory('sirius_gazebo')
     description_pkg = get_package_share_directory('sirius_description')
+    
+    # Pobranie ścieżki do paczki probe_supervisor, żeby Gazebo widziało folder objects
+    try:
+        probe_pkg = get_package_share_directory('probe_supervisor')
+        probe_objects_path = os.path.dirname(probe_pkg) # lub bezpośrednio share, zależnie od struktury
+    except Exception:
+        probe_objects_path = None
 
     manipulator = LaunchConfiguration('manipulator')
     world = LaunchConfiguration('world')
@@ -62,8 +69,16 @@ def generate_launch_description():
     )
 
     # package://sirius_description/... meshes are resolved against GZ_SIM_RESOURCE_PATH
-    resource_path = AppendEnvironmentVariable(
+    resource_path_description = AppendEnvironmentVariable(
         'GZ_SIM_RESOURCE_PATH', os.path.dirname(description_pkg))
+    # model:// URIs of the bundled worlds (e.g. erc2025.sdf)
+    resource_path_models = AppendEnvironmentVariable(
+        'GZ_SIM_RESOURCE_PATH', os.path.join(gazebo_pkg, 'models'))
+
+    # Dodanie ścieżki zasobów dla Twojej sondy (probe_supervisor / objects)
+    # GZ_SIM_RESOURCE_PATH musi wskazywać katalog NAD katalogiem 'objects' lub dokładnie share paczki
+    resource_path_probe = AppendEnvironmentVariable(
+        'GZ_SIM_RESOURCE_PATH', probe_pkg) if probe_pkg else None
 
     gz_sim = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(os.path.join(
@@ -128,7 +143,8 @@ def generate_launch_description():
                  spawn_gripper_controller],
     ))
 
-    return LaunchDescription([
+    # Lista akcji startowych (dołączamy zmienną środowiskową dla probe, jeśli paczka istnieje)
+    launch_actions = [
         DeclareLaunchArgument('manipulator', default_value='none',
                               choices=['none', '6DOF'],
                               description='Which manipulator variant is simulated'),
@@ -141,10 +157,19 @@ def generate_launch_description():
         DeclareLaunchArgument('y', default_value='0.0'),
         DeclareLaunchArgument('z', default_value='0.05'),
         DeclareLaunchArgument('yaw', default_value='0.0'),
-        resource_path,
+        resource_path_description,
+        resource_path_models,
+    ]
+
+    if resource_path_probe:
+        launch_actions.append(resource_path_probe)
+
+    launch_actions.extend([
         gz_sim,
         robot_state_publisher,
         spawn_robot,
         bridge,
         spawn_controllers_after_robot,
     ])
+
+    return LaunchDescription(launch_actions)

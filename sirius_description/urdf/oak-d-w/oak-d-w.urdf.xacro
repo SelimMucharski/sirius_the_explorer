@@ -129,30 +129,16 @@
       <camera name="${prefix}_camera_depth">
         <horizontal_fov>${2*atan2(calibration.cam0.resolution[0], calibration.cam0.intrinsics[0] + calibration.cam0.intrinsics[1])}</horizontal_fov>
         
+        <!-- Same aspect ratio as the calibrated 1280x720 stream, half the resolution.
+             No <lens>/<distortion>: the calibration intrinsics are for 1280x720 (they put
+             the principal point outside a smaller image) and its equidistant (fisheye)
+             coefficients do not map onto Gazebo's Brown-Conrady model. Gazebo derives a
+             centred pinhole model from horizontal_fov, like the rectified OAK depth stream. -->
         <image>
-          <width>320</width>
-          <height>240</height>
+          <width>${calibration.cam0.resolution[0] // 2}</width>
+          <height>${calibration.cam0.resolution[1] // 2}</height>
           <format>R8G8B8</format>
         </image>
-
-        <lens>
-          <intrinsics>
-            <fx>${calibration.cam0.intrinsics[0]}</fx>
-            <fy>${calibration.cam0.intrinsics[1]}</fy>
-            <cx>${calibration.cam0.intrinsics[2]}</cx>
-            <cy>${calibration.cam0.intrinsics[3]}</cy>
-            <s>0</s>
-          </intrinsics>
-        </lens>
-
-        <distortion>
-          <k1>${calibration.cam0.distortion_coeffs[0]}</k1>
-          <k2>${calibration.cam0.distortion_coeffs[1]}</k2>
-          <k3>${calibration.cam0.distortion_coeffs[2]}</k3>
-          <p1>${calibration.cam0.distortion_coeffs[3]}</p1>
-          <p2>0.0</p2>
-          <center>0.5 0.5</center>
-        </distortion>
 
         <clip>
           <near>0.02</near>

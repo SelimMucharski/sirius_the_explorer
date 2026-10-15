@@ -7,24 +7,66 @@ Panels:
     Name: Tool Properties
   - Class: rviz_common/Views
     Name: Views
-  - Class: moveit_rviz_plugin/MotionPlanningPanel
-    Name: MotionPlanning
 
 Visualization Manager:
   Class: ""
   Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Enabled: true
+      Reference Frame: <Fixed Frame>
+      Plane: XY
+      Plane Cell Count: 20
+      Cell Size: 0.5
+      Color: 160; 160; 164
+      Alpha: 0.5
     - Class: rviz_default_plugins/RobotModel
       Description Source: Topic
       Description Topic: /robot_description
       Name: RobotModel
       Enabled: true
-    - Class: moveit_rviz_plugin/PlanningScene
-      Name: PlanningScene
-      Enabled: true
-      Planning Scene Topic: /monitored_planning_scene
+    # Also draws the planning scene (ground) and adds the MotionPlanning panel
     - Class: moveit_rviz_plugin/MotionPlanning
       Name: MotionPlanning
       Enabled: true
       Move Group Namespace: ""
       Planning Group: arm
       Robot Description: robot_description
+      Planning Scene Topic: /monitored_planning_scene
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Fixed Frame: base_link
+    Frame Rate: 30
+  Name: root
+  # Without tools nothing handles the mouse in the 3D view (no orbiting / zooming)
+  Tools:
+    - Class: rviz_default_plugins/Interact
+      Hide Inactive Objects: true
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+    - Class: rviz_default_plugins/FocusCamera
+    - Class: rviz_default_plugins/Measure
+      Line color: 128; 128; 0
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
+      Distance: 3.0
+      Focal Point:
+        X: 0.4
+        Y: 0.0
+        Z: 0.6
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.01
+      Pitch: 0.45
+      Target Frame: <Fixed Frame>
+      Value: Orbit (rviz)
+      Yaw: 0.8
+    Saved: ~

@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+  <model name="probe">
+    <!-- PosePublisher is a model-level system; inside <link> gz-sim ignores it.
+         Only the model pose (in world frame) -> /model/<name>/pose. -->
+    <plugin
+      filename="gz-sim-pose-publisher-system"
+      name="gz::sim::systems::PosePublisher">
+      <publish_model_pose>true</publish_model_pose>
+      <publish_link_pose>false</publish_link_pose>
+      <publish_nested_model_pose>false</publish_nested_model_pose>
+      <use_pose_vector_msg>false</use_pose_vector_msg>
+      <update_frequency>50</update_frequency>
+    </plugin>
+
+    <!-- Rolling resistance substitute: DART has no rolling friction, so a lying cylinder
+         rolls down any slope. Linear angular-velocity damping (torque = k * omega, Fossen
+         sign convention: negative = damping) stops that while keeping the cylindrical
+         collision for grasping; 0.05 N*m*s/rad is negligible for a manipulator.
+         Hydrodynamics only adds the configured terms here: no buoyancy, no added mass. -->
+    <plugin
+      filename="gz-sim-hydrodynamics-system"
+      name="gz::sim::systems::Hydrodynamics">
+      <link_name>link</link_name>
+      <disable_coriolis>true</disable_coriolis>
+      <disable_added_mass>true</disable_added_mass>
+      <kP>-0.05</kP>
+      <mQ>-0.05</mQ>
+      <nR>-0.05</nR>
+    </plugin>
+
+    <link name="link">
+      <visual name="visual">
+        <geometry>
+          <mesh>
+            <uri>meshes/probe.obj</uri>
+          </mesh>
+        </geometry>
+      </visual>
+      
+      <collision name="probe_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.015</radius>
+            <length>0.2</length>
+          </cylinder>
+        </geometry>
+        <!-- High friction (default is 1.0) so probes do not slide down slopes -->
+        <surface>
+          <friction>
+            <ode>
+              <mu>2.0</mu>
+              <mu2>2.0</mu2>
+            </ode>
+            <torsional>
+              <coefficient>1.0</coefficient>
+            </torsional>
+          </friction>
+        </surface>
+      </collision>
+
+      <inertial>
+        <mass>0.5</mass>
+        <inertia>
+          <ixx>0.00169</ixx>
+          <ixy>0.0</ixy>
+          <ixz>0.0</ixz>
+          <iyy>0.00169</iyy>
+          <iyz>0.0</iyz>
+          <izz>0.000056</izz>
+        </inertia>
+      </inertial>
+    </link>
+  </model>
+</sdf>

@@ -17,6 +17,7 @@ Arguments: `manipulator` (`none`/`6DOF`), `world`, `headless`, `x`, `y`, `z`, `y
 ```bash
 ros2 launch sirius_gazebo sirius_sim.launch.py manipulator:=6DOF
 ```
+Obstacle course: add `world:=$(ros2 pkg prefix sirius_gazebo)/share/sirius_gazebo/worlds/obstacles.sdf`.
 Arguments: as above plus `nav2`, `moveit` (ignored for `manipulator:=none`), `rviz`,
 `teleop` (gamepad, see [sirius_teleop](../sirius_teleop/README.md)).
 
@@ -28,7 +29,7 @@ Arguments: as above plus `nav2`, `moveit` (ignored for `manipulator:=none`), `rv
 | `ekf_odom` (wheels + IMU yaw rate) | `/odometry/filtered`, TF `odom → base_link` |
 | static | TF `map → odom` |
 | front OAK-D-W | `/front/depth/image_raw`, `/front/depth/camera_info`, `/front/color/image_raw`, `/front/points` |
-| `obstacle_cloud` | `/front/obstacles` → Nav2 costmaps |
+| `obstacle_cloud` | `/front/obstacles` (marking) and `/front/ground` (clearing) → Nav2 costmaps; own arm filtered out |
 | IMU / GNSS | `/imu/data`, `/gps/fix` |
 | Gazebo | `/clock`, `/ground_truth` |
 | MoveIt | `/manip_controller/follow_joint_trajectory` |
@@ -46,7 +47,7 @@ ros2 topic pub --once /gripper_controller/joint_trajectory trajectory_msgs/msg/J
 ```
 
 ## File structure
-- [worlds](worlds) - SDF worlds (`empty.sdf`).
+- [worlds](worlds) - SDF worlds: `empty.sdf`, `obstacles.sdf` (obstacle course 0.2–1.2 m high, 2.5–9 m ahead, for testing obstacle detection).
 - [config](config) - gz_ros2_control controllers, bridge topics, EKF.
 - [launch](launch) - `sirius_gazebo.launch.py` (sim + ros2_control),
   `sirius_sim.launch.py` (full stack).

@@ -1,7 +1,8 @@
 # Nav2 parameters for Sirius 2 (replaces ROS 1 move_base / mbf_costmap_nav config).
 # Derived from nav2_bringup (Jazzy) defaults. No static map: rolling global costmap
 # in "map" (identity map->odom unless GPS fusion is enabled), obstacles from the
-# front depth camera filtered relative to base_link (/front/obstacles).
+# front depth camera classified against the local ground (/front/obstacles marks,
+# /front/ground clears; see sirius_navigation/obstacle_cloud).
 bt_navigator:
   ros__parameters:
     global_frame: map
@@ -56,9 +57,14 @@ local_costmap:
       obstacle_layer:
         plugin: nav2_costmap_2d::ObstacleLayer
         enabled: true
-        observation_sources: front_cloud
+        observation_sources: front_cloud front_ground
+        # Height filtering is done by obstacle_cloud relative to the local ground, hence the open limits here.
         front_cloud: {topic: /front/obstacles, data_type: PointCloud2, marking: true, clearing: true, min_obstacle_height: -100.0,
           max_obstacle_height: 100.0, obstacle_max_range: 8.0, obstacle_min_range: 0.0, raytrace_max_range: 9.0, raytrace_min_range: 0.0,
+          expected_update_rate: 0.0, inf_is_valid: false}
+        # Ground points only clear: rays to the visible ground remove obstacles that are no longer there.
+        front_ground: {topic: /front/ground, data_type: PointCloud2, marking: false, clearing: true, min_obstacle_height: -100.0,
+          max_obstacle_height: 100.0, obstacle_max_range: 8.0, obstacle_min_range: 0.0, raytrace_max_range: 8.0, raytrace_min_range: 0.0,
           expected_update_rate: 0.0, inf_is_valid: false}
 global_costmap:
   global_costmap:
@@ -73,9 +79,14 @@ global_costmap:
       obstacle_layer:
         plugin: nav2_costmap_2d::ObstacleLayer
         enabled: true
-        observation_sources: front_cloud
+        observation_sources: front_cloud front_ground
+        # Height filtering is done by obstacle_cloud relative to the local ground, hence the open limits here.
         front_cloud: {topic: /front/obstacles, data_type: PointCloud2, marking: true, clearing: true, min_obstacle_height: -100.0,
           max_obstacle_height: 100.0, obstacle_max_range: 8.0, obstacle_min_range: 0.0, raytrace_max_range: 9.0, raytrace_min_range: 0.0,
+          expected_update_rate: 0.0, inf_is_valid: false}
+        # Ground points only clear: rays to the visible ground remove obstacles that are no longer there.
+        front_ground: {topic: /front/ground, data_type: PointCloud2, marking: false, clearing: true, min_obstacle_height: -100.0,
+          max_obstacle_height: 100.0, obstacle_max_range: 8.0, obstacle_min_range: 0.0, raytrace_max_range: 8.0, raytrace_min_range: 0.0,
           expected_update_rate: 0.0, inf_is_valid: false}
       inflation_layer: {plugin: 'nav2_costmap_2d::InflationLayer', cost_scaling_factor: 3.0, inflation_radius: 0.8}
       always_send_full_costmap: true

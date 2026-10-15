@@ -8,6 +8,10 @@
   <!-- This is the ratio needed to convert CEP to std dev of single axis -->
   <xacro:property name="vertical_stddev" value="${vertical_cep * 0.8493218002880191}"/>
   <xacro:property name="horizontal_stddev" value="${horizontal_cep * 0.8493218002880191}"/>
+  <!-- gz-sensors applies horizontal position noise to latitude/longitude in DEGREES
+       (vertical noise stays in meters). One degree of latitude is ~111320 m, so this is
+       exact northwards; eastwards the noise in meters is smaller by cos(latitude). -->
+  <xacro:property name="horizontal_stddev_deg" value="${horizontal_stddev / 111320.0}"/>
   <xacro:property name="velocity_stddev" value="${0.05 * 0.8493218002880191}"/>
   <link name="${_prefix}gnss">
     <visual>
@@ -36,7 +40,7 @@
         <position_sensing>
           <horizontal>
             <noise type="gaussian">
-              <stddev>${horizontal_stddev}</stddev>
+              <stddev>${horizontal_stddev_deg}</stddev>
             </noise>
           </horizontal>
           <vertical>
