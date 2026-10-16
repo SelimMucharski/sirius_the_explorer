@@ -117,6 +117,38 @@
     </sensor>
   </gazebo>
   
+  <!-- Colour stream as its own camera sensor. In the full simulation the colour image of the
+       rgbd_camera below stops rendering the scene once the robot moves (only the background
+       is left; the depth and the plain camera sensors are fine), so /front/color/image_raw
+       comes from here. Same parameters as the rgbd colour image (probe_detector was trained
+       on exactly this camera). -->
+  <gazebo reference="${prefix}_camera">
+    <sensor name="${prefix}_color" type="camera">
+      <topic>${prefix}/color/image</topic>
+      <gz_frame_id>${prefix}_rgb_camera_optical</gz_frame_id>
+      <pose>0 0 0 0 0 0</pose>
+      <always_on>1</always_on>
+      <update_rate>${stereo_fps}</update_rate>
+      <camera name="${prefix}_color">
+        <horizontal_fov>${2*atan2(calibration.cam0.resolution[0], calibration.cam0.intrinsics[0] + calibration.cam0.intrinsics[1])}</horizontal_fov>
+        <image>
+          <width>${calibration.cam0.resolution[0] // 2}</width>
+          <height>${calibration.cam0.resolution[1] // 2}</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>300</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+    </sensor>
+  </gazebo>
+
   <gazebo reference="${prefix}_camera">
     <sensor name="${prefix}_camera" type="rgbd_camera">
       <topic>${prefix}/camera</topic>

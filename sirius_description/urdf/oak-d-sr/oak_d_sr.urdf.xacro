@@ -1,6 +1,14 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-<xacro:macro name="oak-d-sr" params="prefix:=oak-d-sr"> 
+<xacro:macro name="oak-d-sr" params="prefix:=oak-d-sr fps:=15">
+
+  <!-- Rectified stereo pair of the real OAK-D SR (oak_probe_vision calibration):
+       1280x800, common f = 904.936 px after rectification, baseline 20 mm. Gazebo builds
+       a centred pinhole model from horizontal_fov (the real rectified cx, cy = 625.8, 398.9
+       are close to the centre); consumers read K from camera_info. -->
+  <xacro:property name="sr_width" value="1280"/>
+  <xacro:property name="sr_height" value="800"/>
+  <xacro:property name="sr_focal" value="904.936"/>
 
   <link name="${prefix}_camera">
     <visual>
@@ -48,6 +56,58 @@
     <child link="${prefix}_right_camera_optical" />
     <origin xyz="0 0 0" rpy="-1.5707963267948966 0.0 -1.5707963267948966" />
   </joint>
-  
+
+  <gazebo reference="${prefix}_left_camera">
+    <sensor type="camera" name="${prefix}_left">
+      <always_on>1</always_on>
+      <update_rate>${fps}</update_rate>
+      <topic>${prefix}/left/image_raw</topic>
+      <gz_frame_id>${prefix}_left_camera_optical</gz_frame_id>
+      <camera>
+        <horizontal_fov>${2*atan2(sr_width/2, sr_focal)}</horizontal_fov>
+        <image>
+          <width>${sr_width}</width>
+          <height>${sr_height}</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>100</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+    </sensor>
+  </gazebo>
+
+  <gazebo reference="${prefix}_right_camera">
+    <sensor type="camera" name="${prefix}_right">
+      <always_on>1</always_on>
+      <update_rate>${fps}</update_rate>
+      <topic>${prefix}/right/image_raw</topic>
+      <gz_frame_id>${prefix}_right_camera_optical</gz_frame_id>
+      <camera>
+        <horizontal_fov>${2*atan2(sr_width/2, sr_focal)}</horizontal_fov>
+        <image>
+          <width>${sr_width}</width>
+          <height>${sr_height}</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>100</far>
+        </clip>
+        <noise>
+          <type>gaussian</type>
+          <mean>0.0</mean>
+          <stddev>0.007</stddev>
+        </noise>
+      </camera>
+    </sensor>
+  </gazebo>
+
 </xacro:macro>
 </robot>

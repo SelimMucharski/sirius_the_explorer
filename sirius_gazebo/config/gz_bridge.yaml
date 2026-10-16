@@ -27,12 +27,19 @@
   direction: GZ_TO_ROS
 
 # Front OAK-D-W RGB-D
+# colour from the separate camera sensor (the rgbd colour image breaks once the robot moves)
 - ros_topic_name: /front/color/image_raw
-  gz_topic_name: /front/camera/image
+  gz_topic_name: /front/color/image
   ros_type_name: sensor_msgs/msg/Image
   gz_type_name: gz.msgs.Image
   direction: GZ_TO_ROS
   lazy: true
+
+- ros_topic_name: /front/color/camera_info
+  gz_topic_name: /front/color/camera_info
+  ros_type_name: sensor_msgs/msg/CameraInfo
+  gz_type_name: gz.msgs.CameraInfo
+  direction: GZ_TO_ROS
 
 - ros_topic_name: /front/depth/image_raw
   gz_topic_name: /front/camera/depth_image
@@ -67,6 +74,33 @@
   gz_type_name: gz.msgs.Image
   direction: GZ_TO_ROS
   lazy: true
+
+# Wrist OAK-D SR (rectified pinhole, probe pose estimation)
+- ros_topic_name: /wrist/left/image_raw
+  gz_topic_name: /wrist/left/image_raw
+  ros_type_name: sensor_msgs/msg/Image
+  gz_type_name: gz.msgs.Image
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: /wrist/left/camera_info
+  gz_topic_name: /wrist/left/camera_info
+  ros_type_name: sensor_msgs/msg/CameraInfo
+  gz_type_name: gz.msgs.CameraInfo
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /wrist/right/image_raw
+  gz_topic_name: /wrist/right/image_raw
+  ros_type_name: sensor_msgs/msg/Image
+  gz_type_name: gz.msgs.Image
+  direction: GZ_TO_ROS
+  lazy: true
+
+- ros_topic_name: /wrist/right/camera_info
+  gz_topic_name: /wrist/right/camera_info
+  ros_type_name: sensor_msgs/msg/CameraInfo
+  gz_type_name: gz.msgs.CameraInfo
+  direction: GZ_TO_ROS
 
 - ros_topic_name: "probes_poses_gz"
   gz_topic_name: "/world/default/pose/info"

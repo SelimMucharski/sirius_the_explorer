@@ -5,7 +5,7 @@ import threading
 import rclpy
 from rclpy.node import Node
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
-from rclpy.executors import MultiThreadedExecutor
+from rclpy.executors import ExternalShutdownException, MultiThreadedExecutor
 from std_srvs.srv import Trigger
 from geometry_msgs.msg import Pose, PoseArray, Point, Quaternion
 from visualization_msgs.msg import Marker, MarkerArray
@@ -111,8 +111,11 @@ class ProbeSpawnerNode(Node):
                                  f'with min_separation={constraints.min_separation}')
         if errors:
             response.message += f'; {len(errors)} spawn errors: {errors[0]}'
-        log = self.get_logger().info if response.success else self.get_logger().warn
-        log(response.message)
+        # rclpy fixes the severity per call site, so one call site per severity
+        if response.success:
+            self.get_logger().info(response.message)
+        else:
+            self.get_logger().warn(response.message)
         return response
 
     def spawn_probe(self, x, y, z):
@@ -183,6 +186,17 @@ class ProbeSpawnerNode(Node):
             'with bridge')
         return name, None
 
+    def stop_bridges(self):
+        """Stop the per-probe pose bridges (separate processes that outlive the node)."""
+        for proc in self.bridge_processes.values():
+            if proc.poll() is None:
+                proc.terminate()
+        for proc in self.bridge_processes.values():
+            try:
+                proc.wait(timeout=3.0)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+
     def pose_callback(self, msg, name):
         with self.lock:
             if name in self.spawned_probes:
@@ -232,11 +246,12 @@ def main(args=None):
 
     try:
         executor.spin()
-    except KeyboardInterrupt:
+    except (KeyboardInterrupt, ExternalShutdownException):
         pass
     finally:
+        node.stop_bridges()
         node.destroy_node()
-        rclpy.shutdown()
+        rclpy.try_shutdown()
 
 
 if __name__ == '__main__':
