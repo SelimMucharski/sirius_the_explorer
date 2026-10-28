@@ -17,6 +17,7 @@
   <exec_depend>moveit_ros_visualization</exec_depend>
   <exec_depend>sirius_description</exec_depend>
   <exec_depend>moveit_servo</exec_depend>
+  <exec_depend>moveit_ros_perception</exec_depend>  <!-- octomap updater (octomap:=true) -->
   <exec_depend>rclpy</exec_depend>
   <exec_depend>moveit_msgs</exec_depend>
   <exec_depend>shape_msgs</exec_depend>

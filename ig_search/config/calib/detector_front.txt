@@ -1,0 +1,28 @@
+faza front: 2208 obserwacji widocznych próbek, 1787 klatek, 99 par poza-próbka
+
+P_d (k/n klatek = P_d, przedział Wilsona 95% dla klatek; pary poza-próbka):
+  r 0.3-1.0 m: 81/81=0.99 [0.95, 1.00] (4 par)
+  r 1.0-1.5 m: 141/141=1.00 [0.97, 1.00] (6 par)
+  r 1.5-2.0 m: 201/201=1.00 [0.98, 1.00] (9 par)
+  r 2.0-2.5 m: 159/159=1.00 [0.98, 1.00] (7 par)
+  r 2.5-3.0 m: 225/241=0.93 [0.89, 0.96] (11 par)
+  r 3.0-3.5 m: 170/194=0.87 [0.82, 0.92] (9 par)
+  r 3.5-4.0 m: 127/190=0.67 [0.60, 0.73] (9 par)
+  r 4.0-5.0 m: 336/561=0.60 [0.56, 0.64] (25 par)
+  r 5.0-6.0 m: 63/440=0.14 [0.11, 0.18] (20 par)
+  (* - wartość zbiorcza dla wszystkich α, ^ - z poprzedniego r)
+
+σ(r) [m] (na oś), obciążenie wzdłuż promienia / w poprzek [m]:
+  r 0.3-1.0: σ = 0.033 (n 81), wzdłuż -0.037 ± 0.026, w poprzek +0.007 ± 0.005
+  r 1.0-1.5: σ = 0.079 (n 141), wzdłuż -0.051 ± 0.097, w poprzek +0.008 ± 0.019
+  r 1.5-2.0: σ = 0.160 (n 201), wzdłuż -0.116 ± 0.195, w poprzek +0.003 ± 0.007
+  r 2.0-2.5: σ = 0.080 (n 159), wzdłuż -0.053 ± 0.099, w poprzek +0.001 ± 0.007
+  r 2.5-3.0: σ = 0.189 (n 225), wzdłuż -0.089 ± 0.251, w poprzek +0.001 ± 0.010
+  r 3.0-3.5: σ = 0.194 (n 170), wzdłuż -0.198 ± 0.190, w poprzek -0.000 ± 0.007
+  r 3.5-4.0: σ = 0.223 (n 127), wzdłuż -0.181 ± 0.258, w poprzek -0.006 ± 0.006
+  r 4.0-5.0: σ = 0.259 (n 336), wzdłuż -0.208 ± 0.301, w poprzek +0.002 ± 0.014
+  r 5.0-6.0: σ = 0.350 (n 63), wzdłuż -0.431 ± 0.245, w poprzek +0.001 ± 0.001
+  wygładzone (niemalejąca): 0.033, 0.079, 0.160, 0.160, 0.189, 0.194, 0.223, 0.259, 0.350
+
+λ_fa = 242 FA w V(q) / 37717 m²·klatka = 0.006416 [1/(m²·klatka)]
+(FA poza V(q): 73; średnio 0.135 FA w V na klatkę; podwójnych detekcji próbki < 0,15 m, niewliczonych: 0)

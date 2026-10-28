@@ -4,7 +4,8 @@
 Without it OMPL may route the arm through the ground; in Gazebo the arm then hits it
 and the trajectory is aborted. The plane is attached to base_link (flat terrain), its
 top sits `margin` above the real ground, and contact between the ground and the rover
-body (wheels on the ground) is allowed so only the arm is kept away from it.
+body (wheels on the ground) is allowed so only the arm is kept away from it. The same
+holds for the octomap (moveit.launch.py octomap:=true): the wheels stand on mapped ground.
 """
 
 import rclpy
@@ -15,6 +16,7 @@ from moveit_msgs.srv import ApplyPlanningScene, GetPlanningScene
 from shape_msgs.msg import SolidPrimitive
 
 GROUND = 'ground'
+OCTOMAP = '<octomap>'           # MoveIt's name of the octomap in the collision matrix
 
 
 def _call(node, client, request):
@@ -25,16 +27,18 @@ def _call(node, client, request):
     return future.result()
 
 
-def _allow_ground(acm, body_links):
-    """Return a copy of the ACM with a ground row/column (allowed only for body links)."""
+def _allow_ground(acm, body_links, objects=(GROUND, OCTOMAP)):
+    """Return a copy of the ACM with rows/columns for objects (allowed only for body links)."""
     names = list(acm.entry_names)
-    if GROUND not in names:
+    for obj in objects:
+        if obj in names:
+            continue
         for name, entry in zip(names, acm.entry_values):
             entry.enabled.append(name in body_links)
-        names.append(GROUND)
+        names.append(obj)
         acm.entry_values.append(AllowedCollisionEntry(
             enabled=[name in body_links for name in names[:-1]] + [False]))
-        acm.entry_names = names
+    acm.entry_names = names
     return acm
 
 

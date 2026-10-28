@@ -91,8 +91,10 @@ global_costmap:
       inflation_layer: {plugin: 'nav2_costmap_2d::InflationLayer', cost_scaling_factor: 3.0, inflation_radius: 0.8}
       always_send_full_costmap: true
       rolling_window: true
-      width: 60
-      height: 60
+      # okno toczone wokół łazika: 90 m pokrywa cały teren erc2025 (43 x 30 m) z każdego miejsca;
+      # przy 60 m cele dalej niż 30 m od łazika (z rogu mapy) były odrzucane jako poza mapą
+      width: 90
+      height: 90
       footprint: '[[0.45, 0.40], [0.45, -0.40], [-0.52, -0.40], [-0.52, 0.40]]'
 planner_server:
   ros__parameters:

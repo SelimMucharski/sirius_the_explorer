@@ -1,0 +1,142 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+  - Class: rviz_common/Views
+    Name: Views
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Cell Size: 1
+      Plane Cell Count: 50
+      Color: 160; 160; 164
+      Alpha: 0.3
+      Enabled: true
+      Value: true
+    - Class: rviz_default_plugins/Map
+      Name: Belief p (skala względna)
+      Alpha: 0.75
+      Color Scheme: costmap
+      Draw Behind: false
+      Enabled: true
+      Topic:
+        Depth: 1
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /ig_search/belief
+      Value: true
+    - Class: rviz_default_plugins/RobotModel
+      Name: Łazik
+      Description Source: Topic
+      Description Topic:
+        Depth: 5
+        Durability Policy: Transient Local
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /robot_description
+      Enabled: true
+      Value: true
+    - Class: rviz_default_plugins/Path
+      Name: Ścieżka Nav2
+      Color: 25; 255; 0
+      Line Width: 0.05
+      Line Style: Billboards
+      Enabled: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /plan
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Kandydaci i zgłoszenia
+      Enabled: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /ig_search/markers
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Próbki (prawda z Gazebo)
+      Enabled: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /probes_markers
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Detekcje front
+      Enabled: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /front/probe_detector/markers
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Name: Detekcje nadgarstek
+      Enabled: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /wrist/probe_detector/markers
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Name: Kamera przednia
+      Enabled: true
+      Normalize Range: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /front/color/image_raw
+      Value: true
+    - Class: rviz_default_plugins/Image
+      Name: Kamera nadgarstek
+      Enabled: true
+      Normalize Range: true
+      Topic:
+        Depth: 1
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /wrist/left/image_raw
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 40; 40; 40
+    Fixed Frame: map
+    Frame Rate: 15
+  Name: root
+  Tools:
+    - Class: rviz_default_plugins/Interact
+    - Class: rviz_default_plugins/MoveCamera
+    - Class: rviz_default_plugins/Select
+  Value: true
+  Views:
+    Current:
+      Class: rviz_default_plugins/TopDownOrtho
+      Name: Current View
+      Angle: 0
+      Scale: 28
+      X: 15
+      Y: -3
+      Target Frame: <Fixed Frame>
+      Value: TopDownOrtho (rviz_default_plugins)
+    Saved: ~
+Window Geometry:
+  Height: 1000
+  Width: 1600
+  Hide Left Dock: false
+  Hide Right Dock: true

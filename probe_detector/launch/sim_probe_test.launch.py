@@ -1,5 +1,5 @@
 """
-End-to-end test of the probe detectors in the full simulation on erc2025.
+End-to-end test of the probe detectors in the full simulation on erc2025 (or erc2025_real).
 
 Gazebo (erc2025, 6DOF arm, no Nav2 / MoveIt) + probe_supervisor spawner + both detectors +
 sim evaluator (ground truth comparison) + the test scenario (spawns probes, points the wrist
@@ -19,7 +19,7 @@ from launch.actions import (DeclareLaunchArgument, EmitEvent, IncludeLaunchDescr
 from launch.event_handlers import OnProcessExit
 from launch.events import Shutdown
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PythonExpression
 from launch_ros.actions import Node
 
 
@@ -32,11 +32,15 @@ def _include(package, launch_file, arguments):
 def generate_launch_description():
     gazebo = get_package_share_directory('sirius_gazebo')
     sim = _include('sirius_gazebo', 'sirius_sim.launch.py', {
-        'world': os.path.join(gazebo, 'worlds', 'erc2025.sdf'), 'manipulator': '6DOF',
+        'world': PythonExpression(["'", os.path.join(gazebo, 'worlds', 'erc2025'),
+                                   "' + ('_real' if '", LaunchConfiguration('world_variant'),
+                                   "' == 'real' else '') + '.sdf'"]),
+        'manipulator': '6DOF',
         'nav2': 'false', 'moveit': 'false', 'rviz': 'false',
         'headless': LaunchConfiguration('headless')})
     detectors = _include('probe_detector', 'probe_detectors.launch.py', {
-        'use_sim_time': 'true', 'debug_image': LaunchConfiguration('debug_image')})
+        'use_sim_time': 'true', 'debug_image': LaunchConfiguration('debug_image'),
+        'config': LaunchConfiguration('config')})
     spawner = Node(package='probe_supervisor', executable='spawner',
                    parameters=[{'use_sim_time': True}], output='screen')
     evaluator = Node(package='probe_detector', executable='sim_evaluator', output='screen',
@@ -47,6 +51,11 @@ def generate_launch_description():
                     parameters=[{'use_sim_time': True}])
     return LaunchDescription([
         DeclareLaunchArgument('headless', default_value='true', choices=['true', 'false']),
+        DeclareLaunchArgument('world_variant', default_value='basic', choices=['basic', 'real'],
+                              description='real - erc2025_real.sdf (kamienie, płyty, żwir)'),
+        DeclareLaunchArgument('config', default_value=os.path.join(
+            get_package_share_directory('probe_detector'), 'config', 'probe_detectors.yaml'),
+                              description='Detector parameters (e.g. other model weights)'),
         DeclareLaunchArgument('debug_image', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument(
             'snapshot_period', default_value='0.0',

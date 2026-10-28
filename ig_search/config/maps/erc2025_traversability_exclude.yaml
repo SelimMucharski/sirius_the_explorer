@@ -1,0 +1,10 @@
+# Strefy wyłączone z mapy przejezdności (traversability_map --exclude): wielokąty w ramce map [m].
+# Ręczne poprawki autora tam, gdzie kryteria z mapy wysokości nie wystarczają.
+zones:
+  # pas na północ od długiego grzbietu (lewy górny róg mapy) - dostępny tylko przez wąskie
+  # przesmyki (uwaga autora 2026-10-26)
+  - name: pas nad grzbietem
+    polygon: [[-3.52, 12.33], [27.48, 12.33], [27.48, 7.83], [25.23, 7.33], [22.48, 7.08],
+              [19.98, 6.08], [17.48, 4.83], [15.73, 4.33], [13.73, 6.58], [11.48, 5.83],
+              [8.48, 6.08], [6.48, 7.58], [4.48, 6.58], [2.48, 6.08], [-0.52, 5.83],
+              [-3.52, 5.83]]

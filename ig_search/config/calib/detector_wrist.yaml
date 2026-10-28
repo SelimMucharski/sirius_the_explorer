@@ -1,0 +1,18 @@
+# Kalibracja modelu detektora - kamera OAK-D SR na nadgarstku (M6, 2026-10-20).
+# Gazebo erc2025, 3 próbki x 4 wysokości skanu x 3 przesunięcia, 1446 klatek, 1259 obserwacji
+# (33 pary poza-próbka), ramię nieruchome. λ_fa bez podwójnych detekcji tej samej próbki
+# (< 0,15 m); pozostałe FA leżą 0,15-0,75 m od próbki (prawdopodobnie szczęki chwytaka
+# w kadrze). Raport: detector_wrist.txt.
+r_edges: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.2]
+alpha_edges: [0.0, 0.3, 0.62]
+pd:
+- [0.0, 0.0]
+- [0.994, 0.995]
+- [0.82, 0.996]
+- [0.73, 0.989]
+- [0.998, 0.998]
+- [0.809, 0.982]
+- [0.981, 0.987]
+sigma_r_edges: [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.2]
+sigma: [0.0072, 0.0072, 0.0108, 0.0229, 0.0229, 0.0229, 0.0229]
+lambda_fa: 0.205

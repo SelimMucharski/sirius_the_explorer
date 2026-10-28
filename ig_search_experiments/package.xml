@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+  <name>ig_search_experiments</name>
+  <version>0.1.0</version>
+  <description>Narzędzia tylko do symulacji dla ig_search: lokalizacja z prawdziwej pozy Gazebo,
+    sędzia zgłoszeń, automatyczne epizody i analiza wyników.</description>
+  <maintainer email="mucharski.selim@gmail.com">smuchars</maintainer>
+  <license>TODO: License declaration</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>tf2_ros_py</exec_depend>
+  <exec_depend>ig_search</exec_depend>
+  <exec_depend>ig_search_interfaces</exec_depend>
+  <exec_depend>probe_detector</exec_depend>
+  <exec_depend>probe_supervisor</exec_depend>
+  <exec_depend>probe_supervisor_interfaces</exec_depend>
+  <exec_depend>sirius_gazebo</exec_depend>
+  <exec_depend>gz_transport_vendor</exec_depend>
+  <exec_depend>gz_msgs_vendor</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
+  <exec_depend>python3-matplotlib</exec_depend>
+
+  <test_depend>ament_flake8</test_depend>
+  <test_depend>ament_pep257</test_depend>
+  <test_depend>python3-pytest</test_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

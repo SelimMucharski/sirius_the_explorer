@@ -1,0 +1,5 @@
+image: erc2025_heightmap.npy
+origin:
+- -3.54166
+- -17.24282
+resolution: 0.1

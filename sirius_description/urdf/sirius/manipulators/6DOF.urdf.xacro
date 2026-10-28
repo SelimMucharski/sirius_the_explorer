@@ -289,7 +289,7 @@
   </joint>
 
   <xacro:include filename="$(find sirius_description)/urdf/oak-d-sr/oak_d_sr.urdf.xacro" />
-  <xacro:oak-d-sr prefix="wrist"/>
+  <xacro:oak-d-sr prefix="wrist" fps="10"/>
 
   <joint name="joint_wrist_camera" type="fixed">
     <origin xyz="-0.09 -0.01 0.09" rpy="0 -${pi/6} 0"/>
@@ -297,5 +297,21 @@
     <child link="wrist_camera"/>
   </joint>
 
+
+  <!-- Simulation: holding a grasped probe. ig_search_experiments/sample_store replaces the probe
+       the jaws closed on with a copy named `grasped_probe` (same pose); this joint welds it to
+       the gripper (held by friction alone, the probe slipped out in DART) until the probe is
+       stored (despawned) or released. The child model appears only at grasp time. -->
+  <gazebo>
+    <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
+      <parent_link>tcp_connector</parent_link>
+      <child_model>grasped_probe</child_model>
+      <child_link>link</child_link>
+      <attach_topic>/sirius/grasped_probe/attach</attach_topic>
+      <detach_topic>/sirius/grasped_probe/detach</detach_topic>
+      <output_topic>/sirius/grasped_probe/state</output_topic>
+      <suppress_child_warning>true</suppress_child_warning>
+    </plugin>
+  </gazebo>
 
 </robot>

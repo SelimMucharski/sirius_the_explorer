@@ -5,7 +5,7 @@
     weights: models/probe_front_oak_d_w.pt   # OAK-D W front camera, 640x360
     imgsz: 640
     detector_conf: 0.25
-    min_score: 0.3          # validation: recall 0.83, 0.07 false positives / image
+    min_score: 0.3          # validation (gz_front_v2, erc2025_real): recall 0.83, 0.08 FP / image
     max_spread: 0.08
     duplicate_distance: 0.06
     target_frame: ''        # '' = camera optical frame; e.g. map / odom
@@ -16,7 +16,7 @@
     weights: models/probe_wrist_oak_d_sr.pt  # OAK-D SR wrist camera, 1280x800
     imgsz: 960
     detector_conf: 0.25
-    min_score: 0.3          # validation: recall 0.97, 0.04 false positives / image
+    min_score: 0.3          # validation (gz_wrist_v2, erc2025_real): recall 0.96, 0.04 FP / image
     max_spread: 0.05
     duplicate_distance: 0.06  # a probe split by a gripper jaw gives two boxes
     target_frame: ''

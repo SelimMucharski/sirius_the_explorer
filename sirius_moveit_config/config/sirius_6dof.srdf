@@ -53,6 +53,17 @@
     <joint name="joint_6" value="0"/>
   </group_state>
 
+  <!-- Transport pose = ik_ready (folded forward and up, out of the front camera view);
+       joint_3 clamped from 1.85 to the URDF limit 1.58. Used by ig_search. -->
+  <group_state name="transport" group="arm">
+    <joint name="joint_1" value="0"/>
+    <joint name="joint_2" value="-0.5"/>
+    <joint name="joint_3" value="1.58"/>
+    <joint name="joint_4" value="-1.53"/>
+    <joint name="joint_5" value="0.96"/>
+    <joint name="joint_6" value="-0.06"/>
+  </group_state>
+
   <!-- Arm extended horizontally forward -->
   <group_state name="ready" group="arm">
     <joint name="joint_1" value="0"/>

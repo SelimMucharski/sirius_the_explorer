@@ -19,7 +19,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (AppendEnvironmentVariable, DeclareLaunchArgument,
                             IncludeLaunchDescription, RegisterEventHandler)
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import Command, LaunchConfiguration, PythonExpression
@@ -115,6 +115,11 @@ def generate_launch_description():
         output='screen',
     )
 
+    # Gazebo publishes /clock every physics step (~400 Hz at RTF 0.35); every rclpy node with
+    # use_sim_time handles each message (25-60% of a core per Python node). clock_rate > 0:
+    # the bridge publishes /clock_raw and topic_tools throttle forwards it to /clock at that
+    # rate (wall clock). Default 0: /clock straight from the bridge, as before.
+    throttle_clock = PythonExpression(["float('", LaunchConfiguration('clock_rate'), "') > 0"])
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
@@ -123,6 +128,25 @@ def generate_launch_description():
             'use_sim_time': True,
         }],
         output='screen',
+        condition=UnlessCondition(throttle_clock),
+    )
+    bridge_raw_clock = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        parameters=[{
+            'config_file': os.path.join(gazebo_pkg, 'config', 'gz_bridge.yaml'),
+            'use_sim_time': True,
+        }],
+        remappings=[('/clock', '/clock_raw')],
+        output='screen',
+        condition=IfCondition(throttle_clock),
+    )
+    clock_throttle = Node(
+        package='topic_tools', executable='throttle', name='clock_throttle',
+        arguments=['messages', '/clock_raw', LaunchConfiguration('clock_rate'), '/clock'],
+        parameters=[{'use_sim_time': False}],
+        output='screen',
+        condition=IfCondition(throttle_clock),
     )
 
     spawn_joint_state_broadcaster = _spawner('joint_state_broadcaster')
@@ -157,6 +181,8 @@ def generate_launch_description():
         DeclareLaunchArgument('y', default_value='0.0'),
         DeclareLaunchArgument('z', default_value='0.05'),
         DeclareLaunchArgument('yaw', default_value='0.0'),
+        DeclareLaunchArgument('clock_rate', default_value='0',
+                              description='/clock rate limit [Hz]; 0 - every physics step'),
         resource_path_description,
         resource_path_models,
     ]
@@ -169,6 +195,8 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_robot,
         bridge,
+        bridge_raw_clock,
+        clock_throttle,
         spawn_controllers_after_robot,
     ])
 

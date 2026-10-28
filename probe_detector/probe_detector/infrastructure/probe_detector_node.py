@@ -122,8 +122,9 @@ class ProbeDetectorNode(LifecycleNode):
             'detections': self.create_lifecycle_publisher(Detection3DArray, '~/detections', 10),
             'markers': self.create_lifecycle_publisher(MarkerArray, '~/markers', 10)}
         if p('publish_debug_image'):
-            self._pubs['debug'] = self.create_lifecycle_publisher(Image, '~/debug_image',
-                                                                  qos_profile_sensor_data)
+            # reliable, depth 1: matches both reliable (rqt_image_view, RViz default) and
+            # best-effort viewers; a best-effort publisher is invisible to reliable ones
+            self._pubs['debug'] = self.create_lifecycle_publisher(Image, '~/debug_image', 1)
         self.get_logger().info(f'loaded {weights} (imgsz {p("imgsz")})')
         return TransitionCallbackReturn.SUCCESS
 
@@ -204,7 +205,8 @@ class ProbeDetectorNode(LifecycleNode):
             d.bbox.size.z = PROBE_LENGTH
             d.id = str(i)
             dets.detections.append(d)
-            m = Marker(header=header, ns='probes', id=i, type=Marker.CYLINDER,
+            # id od 1: (probes, 0) ma już marker DELETEALL z początku tablicy
+            m = Marker(header=header, ns='probes', id=i + 1, type=Marker.CYLINDER,
                        action=Marker.ADD, pose=pose)
             m.scale.x = m.scale.y = PROBE_DIAMETER
             m.scale.z = PROBE_LENGTH

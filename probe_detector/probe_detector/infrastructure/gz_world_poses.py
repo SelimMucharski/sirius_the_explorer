@@ -28,15 +28,22 @@ class GzWorldPoses:
     """Latest poses of models named probe_prefix* and a time-indexed history of the robot."""
 
     def __init__(self, world='erc2025', robot='sirius', probe_prefix='probe_object_',
-                 history=4000):
+                 history=4000, rate=None):
+        """rate - max. messages/s handled (gz-transport throttling before parsing); None - all."""
         from gz.msgs10.pose_v_pb2 import Pose_V
-        from gz.transport13 import Node
+        from gz.transport13 import Node, SubscribeOptions
         self._robot, self._prefix = robot, probe_prefix
         self._lock = threading.Lock()
         self._probes = {}
         self._robot_hist = deque(maxlen=history)
         self._node = Node()
-        if not self._node.subscribe(Pose_V, f'/world/{world}/pose/info', self._on_poses):
+        options = SubscribeOptions()
+        if rate:
+            # /world/<w>/pose/info comes every physics step; parsing it in Python cost
+            # ~25% of a core per subscriber in the simulation
+            options.msgs_per_sec = int(rate)
+        if not self._node.subscribe(Pose_V, f'/world/{world}/pose/info', self._on_poses,
+                                    options):
             raise RuntimeError(f'cannot subscribe to /world/{world}/pose/info')
 
     def _on_poses(self, msg):

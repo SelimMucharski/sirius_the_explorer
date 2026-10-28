@@ -6,6 +6,8 @@ Full Sirius simulation: Gazebo + ros2_control + localization + Nav2 + MoveIt.
   localization:=gnss (default) sirius_navigation/gnss_odom_correction: map->odom from /gps/fix
                                (corrects the odometry position drift, bounded error)
   localization:=none           static map->odom (the odometry drift is not corrected)
+  localization:=ground_truth   no map->odom here: ig_search_experiments/ground_truth_localization
+                               publishes it from the Gazebo pose (experiments with known pose)
   sirius_navigation/nav2       obstacle_cloud (/front/depth) + Nav2 (-> /cmd_vel)
   sirius_moveit_config/moveit  move_group + MoveIt Servo + RViz (only with the arm)
   sirius_teleop                gamepad: drive, arm jogging, gripper (teleop:=true)
@@ -122,6 +124,8 @@ def generate_launch_description():
     moveit = _include('sirius_moveit_config', 'moveit.launch.py', {
         'use_sim_time': 'true',
         'use_rviz': rviz,
+        'use_servo': LaunchConfiguration('servo'),
+        'octomap': LaunchConfiguration('octomap'),
     }, condition=with_moveit)
 
     teleop = _include('sirius_teleop', 'teleop.launch.py', {
@@ -133,7 +137,7 @@ def generate_launch_description():
                               choices=['none', '6DOF'],
                               description='Which manipulator variant is simulated'),
         DeclareLaunchArgument('world',
-                              default_value=os.path.join(gazebo_pkg, 'worlds', 'empty.sdf'),
+                              default_value=os.path.join(gazebo_pkg, 'worlds', 'erc2025.sdf'),
                               description='Path to the SDF world'),
         DeclareLaunchArgument('headless', default_value='false', choices=['true', 'false']),
         DeclareLaunchArgument('nav2', default_value='true', choices=['true', 'false'],
@@ -141,10 +145,16 @@ def generate_launch_description():
         DeclareLaunchArgument('moveit', default_value='true', choices=['true', 'false'],
                               description='Start MoveIt (ignored when manipulator:=none)'),
         DeclareLaunchArgument('rviz', default_value='true', choices=['true', 'false']),
+        DeclareLaunchArgument('servo', default_value='true', choices=['true', 'false'],
+                              description='Start MoveIt Servo (gamepad jogging of the arm)'),
+        DeclareLaunchArgument('octomap', default_value='false', choices=['true', 'false'],
+                              description='MoveIt octomap from the front depth camera'),
         DeclareLaunchArgument('teleop', default_value='false', choices=['true', 'false'],
                               description='Start gamepad teleoperation (sirius_teleop)'),
-        DeclareLaunchArgument('localization', default_value='gnss', choices=['gnss', 'none'],
-                              description='map->odom corrected by GNSS (gnss) or static (none)'),
+        DeclareLaunchArgument('localization', default_value='gnss',
+                              choices=['gnss', 'none', 'ground_truth'],
+                              description='map->odom corrected by GNSS (gnss), static (none) '
+                                          'or from the Gazebo pose (ground_truth)'),
         DeclareLaunchArgument('yaw', default_value='0.0',
                               description='Rover heading at spawn in the world frame [rad]'),
         gazebo,

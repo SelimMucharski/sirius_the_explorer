@@ -10,8 +10,13 @@ are read from /robot_description and placed with TF on every frame.
 Classification is relative to the local ground (see sirius_navigation.obstacle_cloud), so
 slopes of the Mars-yard terrain are not marked as obstacles, while low obstacles are, at
 any distance (the costmap's own height filter works in the global frame).
+
+With `terrain_heightmap` (.yaml {image: .npy, resolution, origin}, the prior height map known
+before the mission) points are also classified against that terrain, looked up through the
+`map_frame` -> base transform: piles of rocks, whose gaps the camera cannot see, are obstacles.
 """
 
+import os
 import xml.etree.ElementTree as ET
 
 import numpy as np
@@ -23,11 +28,13 @@ from rclpy.time import Time
 from sensor_msgs.msg import CameraInfo, Image, PointCloud2, PointField
 from std_msgs.msg import String
 from tf2_ros import Buffer, TransformException, TransformListener
+import yaml
 
 from sirius_navigation.obstacle_cloud import (
     ObstacleFilter,
     OrientedBox,
     PinholeIntrinsics,
+    TerrainPrior,
     classify_points,
     depth_to_points,
 )
@@ -71,6 +78,17 @@ def quaternion_to_matrix(q) -> np.ndarray:
     ])
 
 
+def load_terrain_prior(yaml_path: str, margin: float) -> TerrainPrior:
+    """Height map .yaml {image: .npy (rows along +y), resolution, origin: [x, y]}."""
+    with open(yaml_path) as f:
+        meta = yaml.safe_load(f)
+    npy = meta['image']
+    if not os.path.isabs(npy):
+        npy = os.path.join(os.path.dirname(yaml_path), npy)
+    return TerrainPrior(np.load(npy).astype(np.float64), float(meta['origin'][0]),
+                        float(meta['origin'][1]), float(meta['resolution']), margin)
+
+
 class ObstacleCloudNode(Node):
 
     def __init__(self):
@@ -85,6 +103,9 @@ class ObstacleCloudNode(Node):
         self.declare_parameter('depth_scale', 0.001)  # 16UC1 depth is in millimeters
         self.declare_parameter('self_filter_links', ARM_LINKS)
         self.declare_parameter('self_filter_padding', 0.05)  # [m]
+        self.declare_parameter('terrain_heightmap', '')  # '' - local ground only
+        self.declare_parameter('map_frame', 'map')
+        self.declare_parameter('prior_margin', 0.05)  # [m]
 
         p = self.get_parameter
         self._base_frame = p('base_frame').value
@@ -96,6 +117,12 @@ class ObstacleCloudNode(Node):
         self._self_links = list(p('self_filter_links').value)
         self._self_padding = p('self_filter_padding').value
         self._self_boxes = {}  # link -> boxes in the link frame, filled from robot_description
+        self._map_frame = p('map_frame').value
+        self._prior = None
+        if p('terrain_heightmap').value:
+            self._prior = load_terrain_prior(p('terrain_heightmap').value, p('prior_margin').value)
+            self.get_logger().info(f'Terrain prior {self._prior.heights.shape} cells of '
+                                   f"{self._prior.resolution} m from {p('terrain_heightmap').value}")
 
         self._tf_buffer = Buffer()
         self._tf_listener = TransformListener(self._tf_buffer, self)
@@ -124,6 +151,19 @@ class ObstacleCloudNode(Node):
             boxes += [OrientedBox(rot @ r, rot @ c + pos, half) for r, c, half in shapes]
         return boxes
 
+    def _base_in_map(self):
+        """(rotation, translation) of the base frame in the map frame, None if unknown."""
+        if self._prior is None:
+            return None
+        try:
+            tf = self._tf_buffer.lookup_transform(self._map_frame, self._base_frame, Time())
+        except TransformException as e:
+            self.get_logger().warn(f'No transform {self._base_frame} -> {self._map_frame}, '
+                                   f'local ground only: {e}', throttle_duration_sec=5.0)
+            return None
+        t = tf.transform.translation
+        return quaternion_to_matrix(tf.transform.rotation), np.array([t.x, t.y, t.z])
+
     def _on_info(self, msg: CameraInfo) -> None:
         self._intrinsics = PinholeIntrinsics(msg.k[0], msg.k[4], msg.k[2], msg.k[5])
 
@@ -147,7 +187,7 @@ class ObstacleCloudNode(Node):
         obstacles, ground = classify_points(
             depth_to_points(depth, self._intrinsics, self._filter.stride),
             quaternion_to_matrix(tf.transform.rotation), np.array([t.x, t.y, t.z]), self._filter,
-            self._self_boxes_in_base(), self._self_padding)
+            self._self_boxes_in_base(), self._self_padding, self._prior, self._base_in_map())
         self._obstacles_pub.publish(self._to_cloud(obstacles, msg.header.stamp))
         self._ground_pub.publish(self._to_cloud(ground, msg.header.stamp))
 

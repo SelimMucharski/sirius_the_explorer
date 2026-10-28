@@ -1,0 +1,6 @@
+newmtl terrain
+Ka 1 1 1
+Kd 1 1 1
+Ks 0.03 0.03 0.03
+illum 1
+map_Kd hires-gravel.jpg

@@ -74,7 +74,9 @@
 
   <xacro:hp_4310 prefix="mast_back" material="black" />
   <xacro:hp_4310 prefix="mast_front" material="black" />
-  <xacro:oak-d-w prefix="front"/>
+  <!-- 10 Hz in simulation: the detectors use ~5 frames/s, Nav2 the depth cloud; rendering
+       30 Hz cameras costs CPU the simulation needs (real-time factor) -->
+  <xacro:oak-d-w prefix="front" stereo_fps="10"/>
   <xacro:gnss material="gray" />
 
   <xacro:joint child="platform" xyz="0 0 ${mechanical['wheel_radius'] + mechanical['suspension_height'] - mechanical['suspension_z']}" />

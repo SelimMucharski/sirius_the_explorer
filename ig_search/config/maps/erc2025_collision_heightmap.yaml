@@ -1,0 +1,5 @@
+image: erc2025_collision_heightmap.npy
+origin:
+- -3.55806
+- -17.26351
+resolution: 0.1
